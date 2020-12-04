@@ -1,6 +1,5 @@
 import gdal
 
-
 input_epsg = 4326
 output_epsg = 25832
 # https://eng.sdfe.dk/product-and-services/professional-users/
