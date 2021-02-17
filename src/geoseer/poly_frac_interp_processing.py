@@ -155,9 +155,45 @@ plt.show()
 
 #%%
 
-# Extract data for wall section
+def search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj):
+    """
+    Script to identify fractures that exist between two defined x values.
+    All other coordinates ignored.
+    Returns a list of shapely linestrings
+    """
+
+    active_lines = []
+    for line in all_lines_reproj:
+        x_list, y_list = line.xy
+        x_list = [i -560400 for i in x_list]
+        line_x_max = np.max(x_list)
+        line_x_min = np.min(x_list)
+        # if line exists in search window do something
+        if line_x_min <= window_x_max and line_x_max >= window_x_min:
+            active_lines.append(line)
+    return active_lines
 
 
+# print(active_lines)
+active_line = search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj)
+
+#%%
+
+# Plot active lines
+
+for ln in active_line:
+    x = np.array([c[0] for c in ln.coords])
+    x = x - 560400
+    y = np.array([c[1] for c in ln.coords])
+    y = y - 6323600
+    z = np.array([c[2] for c in ln.coords])
+
+    plt.plot(x,z)
+
+#plt.xlim(0, 50)
+plt.ylabel("Vertical distance from base (m)")
+plt.xlabel("Lateral distance from left/North (m)")
+plt.show()
 
 
 #%%
