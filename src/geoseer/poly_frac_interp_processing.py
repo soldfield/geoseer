@@ -81,16 +81,6 @@ def bounding_box_long_axis(bounding_rectangle):
     # positive angles will become counter-clockwise rotation
     return angle
 
-input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
-file_path = os.path.normpath(input_file)
-coord_list = extract_coordinates_from_xyz_file(file_path)
-all_lines = make_linestring_list(coord_list)
-bounding_rectangle = calculate_bounding_rectangle(all_lines)
-# plot_all_fracs_xy_plane(all_lines)
-angle = bounding_box_long_axis(bounding_rectangle)
-
-#%%
-
 def plot_bounding_box(reproj_bound_box):
     x, y = reproj_bound_box.exterior.xy
     plt.plot(x,y)
@@ -98,14 +88,16 @@ def plot_bounding_box(reproj_bound_box):
 
 def reproject_to_local_crs(all_lines, angle, origin):
     # rotate original interpreted lines
-    all_lines_reproj = rotate(all_lines, angle, origin=(560420,6323600), use_radians=False)
+    all_lines_reproj = rotate(all_lines, angle, origin, use_radians=False)
 
     for ln in all_lines_reproj:
         x = np.array([c[0] for c in ln.coords])
-        x = x - 560400
+        x = x - origin[0]
         y = np.array([c[1] for c in ln.coords])
-        y = y - 6323600
+        y = y - origin[1]
         z = np.array([c[2] for c in ln.coords])
+        if len(origin) == 3:
+            z = z - origin[2]
         plt.plot(x,y)
 
     plt.ylabel("Lateral distance from lakeside/West (m)")
@@ -113,9 +105,17 @@ def reproject_to_local_crs(all_lines, angle, origin):
     plt.show()
     return all_lines_reproj
 
+
+input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
+file_path = os.path.normpath(input_file)
+coord_list = extract_coordinates_from_xyz_file(file_path)
+all_lines = make_linestring_list(coord_list)
+bounding_rectangle = calculate_bounding_rectangle(all_lines)
+# plot_all_fracs_xy_plane(all_lines)
+angle = bounding_box_long_axis(bounding_rectangle)
 # TODO: automate identification of the origin
-origin=(560420,6323600)
-reproj_bound_box = rotate(bounding_rectangle, angle, origin=(560420,6323600), use_radians=False)
+origin = (560420,6323600,0)
+reproj_bound_box = rotate(bounding_rectangle, angle, origin, use_radians=False)
 all_lines_reproj = reproject_to_local_crs(all_lines, angle, origin)
 
 #%%
@@ -199,3 +199,4 @@ plt.show()
 #%%
 # pipe to fracpaqpy
 
+# make local coordinate list
