@@ -39,6 +39,55 @@ def poly2fpq(input_file):
     with open(output_file_name, "w") as f_out:
         f_out.write(db)
 
+#%%
+
+lines_list
+
+def xz_to_fracpaq(line_list):
+
+#%%
+line_list = active_lines
+
+while True:
+    try:
+        line_list.has_z
+        continue
+    except ValueError:
+        print("Objects do not appear to have three dimensions, no z value")
+
+
+
+
+
+
+#%%
+def xy_to_fracpaq(line_list):
+
+    for line in line_list:
+        x_ls, y_ls = line.xy
+
+
+
+    # format each record into a list of points: x1 y1 ... xn yn
+    for i in range(len(x_ls)):
+        if len(x_ls[i]) > 0:
+            coord_list[i] = x_ls[i] + " " + y_ls[i] + " "
+        else:
+            coord_list[i] = "\n"
+
+    # compile each list of points into a list of lines
+    db = ""
+    for i in range(len(coord_list)):
+        db = db + coord_list[i]
+
+    # write to output file
+    output_file_name = input_file.strip('.poly')+"_poly2fpq.txt"
+    with open(output_file_name, "w") as f_out:
+        f_out.write(db)
+
+
+
+
 
 #%%
 

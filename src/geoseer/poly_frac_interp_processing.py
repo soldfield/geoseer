@@ -147,6 +147,8 @@ def search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj):
         # if line exists in search window do something
         if line_x_min <= window_x_max and line_x_max >= window_x_min:
             active_lines.append(line)
+
+    active_lines = MultiLineString(active_lines)
     return active_lines
 
 #%%
@@ -165,6 +167,7 @@ all_lines_reproj = reproject_to_local_crs(all_lines, angle, origin)
 
 
 plot_xz_linelist(all_lines_reproj, origin)
+#%%
 active_lines = search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj)
 
 # Plot active lines
@@ -175,3 +178,6 @@ plot_xz_linelist(active_lines, origin)
 # pipe to fracpaqpy
 
 # make local coordinate list
+
+#%%
+
