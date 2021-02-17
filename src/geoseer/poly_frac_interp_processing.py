@@ -132,10 +132,11 @@ plt.ylabel("Vertical distance from base (m)")
 plt.xlabel("Lateral distance from left/North (m)")
 plt.show()
 
-# left should be north, but this should be confirmed with physical data
+# left should be north, this has been confirmed with physical data
 
 #%%
 
+# plot wall section
 for ln in all_lines_reproj:
     x = np.array([c[0] for c in ln.coords])
     x = x - 560400
@@ -153,4 +154,7 @@ plt.show()
 # project for a section of wall and export that data for use in fraqpak
 
 #%%
+
+# Extract data for wall section
+# pipe to frakpaq pi
 
