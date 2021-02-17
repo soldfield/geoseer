@@ -9,6 +9,7 @@ input_file = "measurements.poly"
 def poly2fpq(input_file):
     """
     Function accepts .poly files and converts them to a format acceptable to FracPaQ (Healy et al. 2017).
+    The first two columns of coordinates will be treated as X and Y, respectively. Any third field for Z is discarded.
     :param input_file: file name of the .poly file
     :return: Generates a text file in the current working directory, named as the input file with suffix "_poly2fpq"
     """
