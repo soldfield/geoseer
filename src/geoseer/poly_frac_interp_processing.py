@@ -87,6 +87,10 @@ def plot_bounding_box(reproj_bound_box):
     plt.show()
 
 def reproject_to_local_crs(all_lines, angle, origin):
+    """
+    Note this function does not update or return reprojected coords.
+    Requires improvement in future to actually calculate these coords.
+    """
     # rotate original interpreted lines
     all_lines_reproj = rotate(all_lines, angle, origin, use_radians=False)
 
@@ -105,55 +109,27 @@ def reproject_to_local_crs(all_lines, angle, origin):
     plt.show()
     return all_lines_reproj
 
+def plot_xz_linelist(line_list, origin):
+    """
 
-input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
-file_path = os.path.normpath(input_file)
-coord_list = extract_coordinates_from_xyz_file(file_path)
-all_lines = make_linestring_list(coord_list)
-bounding_rectangle = calculate_bounding_rectangle(all_lines)
-# plot_all_fracs_xy_plane(all_lines)
-angle = bounding_box_long_axis(bounding_rectangle)
-# TODO: automate identification of the origin
-origin = (560420,6323600,0)
-reproj_bound_box = rotate(bounding_rectangle, angle, origin, use_radians=False)
-all_lines_reproj = reproject_to_local_crs(all_lines, angle, origin)
+    :param line_list:
+    :param origin:
+    :return:
+    """
+    for ln in line_list:
+        x = np.array([c[0] for c in ln.coords])
+        x = x - origin[0]
+        y = np.array([c[1] for c in ln.coords])
+        y = y - origin[1]
+        z = np.array([c[2] for c in ln.coords])
+        if len(origin) == 3:
+            z = z - origin[2]
+        plt.plot(x, z)
 
-#%%
-for ln in all_lines_reproj:
-    x = np.array([c[0] for c in ln.coords])
-    x = x - 560400
-    y = np.array([c[1] for c in ln.coords])
-    y = y - 6323600
-    z = np.array([c[2] for c in ln.coords])
-
-    plt.plot(x,z)
-
-plt.ylabel("Vertical distance from base (m)")
-plt.xlabel("Lateral distance from left/North (m)")
-plt.show()
-
-# left should be north, this has been confirmed with physical data
-
-#%%
-
-# plot wall section
-for ln in all_lines_reproj:
-    x = np.array([c[0] for c in ln.coords])
-    x = x - 560400
-    y = np.array([c[1] for c in ln.coords])
-    y = y - 6323600
-    z = np.array([c[2] for c in ln.coords])
-
-    plt.plot(x,z)
-
-plt.xlim(0, 50)
-plt.ylabel("Vertical distance from base (m)")
-plt.xlabel("Lateral distance from left/North (m)")
-plt.show()
-
-# project for a section of wall and export that data for use in fraqpak
-
-#%%
+    # plt.xlim(0, 50) # limits section of wall presented
+    plt.ylabel("Vertical distance from base (m)")
+    plt.xlabel("Lateral distance from left/North (m)")
+    plt.show()
 
 def search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj):
     """
@@ -173,27 +149,26 @@ def search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj):
             active_lines.append(line)
     return active_lines
 
-
-# print(active_lines)
-active_line = search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj)
-
 #%%
 
+input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
+file_path = os.path.normpath(input_file)
+coord_list = extract_coordinates_from_xyz_file(file_path)
+all_lines = make_linestring_list(coord_list)
+bounding_rectangle = calculate_bounding_rectangle(all_lines)
+# plot_all_fracs_xy_plane(all_lines)
+angle = bounding_box_long_axis(bounding_rectangle)
+# TODO: automate identification of the origin
+origin = (560420,6323600,0)
+reproj_bound_box = rotate(bounding_rectangle, angle, origin, use_radians=False)
+all_lines_reproj = reproject_to_local_crs(all_lines, angle, origin)
+
+
+plot_xz_linelist(all_lines_reproj, origin)
+active_lines = search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj)
+
 # Plot active lines
-
-for ln in active_line:
-    x = np.array([c[0] for c in ln.coords])
-    x = x - 560400
-    y = np.array([c[1] for c in ln.coords])
-    y = y - 6323600
-    z = np.array([c[2] for c in ln.coords])
-
-    plt.plot(x,z)
-
-#plt.xlim(0, 50)
-plt.ylabel("Vertical distance from base (m)")
-plt.xlabel("Lateral distance from left/North (m)")
-plt.show()
+plot_xz_linelist(active_lines, origin)
 
 
 #%%
