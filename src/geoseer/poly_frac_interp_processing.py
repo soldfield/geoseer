@@ -151,8 +151,6 @@ def search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj):
     active_lines = MultiLineString(active_lines)
     return active_lines
 
-#%%
-
 input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
 file_path = os.path.normpath(input_file)
 coord_list = extract_coordinates_from_xyz_file(file_path)
@@ -167,7 +165,11 @@ all_lines_reproj = reproject_to_local_crs(all_lines, angle, origin)
 
 
 plot_xz_linelist(all_lines_reproj, origin)
+
 #%%
+
+window_x_min, window_x_max = 0, 1
+
 active_lines = search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj)
 
 # Plot active lines
