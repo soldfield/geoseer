@@ -89,7 +89,7 @@ def xy_to_fracpaq(line_list: list, out_path: str) -> None:
         plt.plot(i_arr, j_arr)
 
         for i in range(len(i_arr)):
-            string_out += str(i_arr[i]) + " " + str(j_arr[i]) + " "
+            string_out += str(i_arr[i]) + "\t" + str(j_arr[i]) + "\t"
             #print(i, len(i_arr))
             if i == len(i_arr)-1:
                 #print(i)
@@ -124,7 +124,7 @@ def coord_arrays_to_fpq(i_arr, j_arr, out_path):
 
     for i in range(len(i_arr)):
         if len(i_arr[i]) > 0:
-            coord_list.append(i_arr[i] + " " + j_arr[i] + " ")
+            coord_list.append(i_arr[i] + "\t" + j_arr[i] + "\t")
         else:
             coord_list.append("\n")
 
@@ -141,8 +141,10 @@ out_dir = os.getcwd()
 out_file_name = 'test.txt'
 out_path = os.path.join(out_dir, out_file_name)
 
-i_arr = x_arr
-j_arr = z_arr
+coords_array = np.array(active_lines[0].coords)
+
+i_arr = list(coords_array[:,0])
+j_arr = list(coords_array[:,2])
 
 coord_arrays_to_fpq(i_arr, j_arr, out_path)
 

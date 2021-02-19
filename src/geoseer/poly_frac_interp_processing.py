@@ -31,7 +31,7 @@ def extract_coordinates_from_xyz_file(file_path):
 
 def make_linestring_list(coord_list):
     """
-    Makes a shapely MultiLineString object from list of coordinates
+    Makes a shapely MultiLineString object from list of coordinates.
     :param coord_list:
     :return:
     """
