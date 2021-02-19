@@ -1,5 +1,5 @@
 """
-A script to convert poly files of polylines into a readable formwat for fracpaq.
+A script to convert poly files of polylines into a readable format for fracpaq.
 """
 
 import os
