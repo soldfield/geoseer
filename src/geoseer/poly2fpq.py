@@ -1,26 +1,28 @@
 """
-A script to convert poly files of polylines into a readable format for fracpaq.
+A script to convert poly files of polylines into a readable format for FracPaQ (Healy et al., 2017).
 """
 
 import os
-folder_path = os.getcwd()
-input_file = "measurements.poly"
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 def poly2fpq(input_file):
     """
     Function accepts .poly files and converts them to a format acceptable to FracPaQ (Healy et al. 2017).
     The first two columns of coordinates will be treated as X and Y, respectively. Any third field for Z is discarded.
+
     :param input_file: file name of the .poly file
     :return: Generates a text file in the current working directory, named as the input file with suffix "_poly2fpq"
     """
     with open(input_file) as f_in:
         coord_list = f_in.readlines()
-        #print(coord_list)
+        # print(coord_list)
 
     # strip newlines
     coord_list = [i.strip() for i in coord_list]
     coord_list = [i.split() for i in coord_list]
-    #test = [[float(j) for j in test[i]] for i in test]
+    # test = [[float(j) for j in test[i]] for i in test]
 
     # format each record into a list of points: x1 y1 ... xn yn
     for i in range(len(coord_list)):
@@ -39,6 +41,7 @@ def poly2fpq(input_file):
     with open(output_file_name, "w") as f_out:
         f_out.write(db)
 
+
 def xz_to_fracpaq(line_list):
     """
     Converts a shapely multilinestring object to a FracPaQ file, extracting data to a two-dimensional plane
@@ -46,7 +49,7 @@ def xz_to_fracpaq(line_list):
 
     :param line_list: shapely Multilinestring object of lines defined by three coordinates, XYZ
     :param out_path: string of file path, name and any extensions (e.g. '.txt')
-    :return None: generates text file in frcpaq format at out_path
+    :return None: generates text file in FracPaQ format at out_path
     """
 
     try:
@@ -57,18 +60,14 @@ def xz_to_fracpaq(line_list):
     for i in range(len(line_list)):
         # retrieve coordinates for line
         ln_coords = np.array(line_list[i].coords)
-        x_arr = ln_coords[:,0]
-        z_arr = ln_coords[:,2]
+        x_arr = ln_coords[:, 0]
+        z_arr = ln_coords[:, 2]
         plt.plot(x_arr, z_arr)
 
     plt.ylabel("Vertical distance from base (m)")
     plt.xlabel("Lateral distance from left/North (m)")
     plt.show()
 
-line_list = active_lines
-xz_to_fracpaq(line_list)
-
-#%%
 
 def xy_to_fracpaq(line_list: list, out_path: str) -> None:
     """
@@ -77,7 +76,7 @@ def xy_to_fracpaq(line_list: list, out_path: str) -> None:
 
     :param line_list: shapely Multilinestring object of lines defined by two or three coordinates, XY(Z)
     :param out_path: string of file path, name and any extensions (e.g. '.txt')
-    :return None: generates text file in frcpaq format at out_path
+    :return None: generates text file in fracpaq format at out_path
     """
     string_out = ""
 
@@ -90,9 +89,9 @@ def xy_to_fracpaq(line_list: list, out_path: str) -> None:
 
         for i in range(len(i_arr)):
             string_out += str(i_arr[i]) + "\t" + str(j_arr[i]) + "\t"
-            #print(i, len(i_arr))
+            # print(i, len(i_arr))
             if i == len(i_arr)-1:
-                #print(i)
+                # print(i)
                 string_out += "\n"
                 # list_string_lines_out.append(string_line_out)
     # write to output file
@@ -103,14 +102,6 @@ def xy_to_fracpaq(line_list: list, out_path: str) -> None:
     plt.xlabel("Easting (m)")
     plt.show()
 
-out_dir = os.getcwd()
-out_file_name = 'test.txt'
-out_path = os.path.join(out_dir, out_file_name)
-
-line_list = active_lines
-xy_to_fracpaq(line_list, out_path)
-
-#%%
 
 def coord_arrays_to_fpq(i_arr, j_arr, out_path):
     """
@@ -137,23 +128,26 @@ def coord_arrays_to_fpq(i_arr, j_arr, out_path):
     with open(out_path, "w") as f_out:
         f_out.write(db)
 
+folder_path = os.getcwd()
+
+input_file = "/data/tala_cc_fracs/measurements.poly"
+
+# line_list = active_lines
+# xz_to_fracpaq(line_list)
+
+# xy_to_fracpaq(line_list, out_path)
+
 out_dir = os.getcwd()
 out_file_name = 'test.txt'
 out_path = os.path.join(out_dir, out_file_name)
 
-coords_array = np.array(active_lines[0].coords)
+# coords_array = np.array(active_lines[0].coords)
 
-i_arr = list(coords_array[:,0])
-j_arr = list(coords_array[:,2])
+# i_arr = list(coords_array[:,0])
+# j_arr = list(coords_array[:,2])
 
-coord_arrays_to_fpq(i_arr, j_arr, out_path)
-
-
-#%%
+# coord_arrays_to_fpq(i_arr, j_arr, out_path)
 
 
-input_file = "/data/tala_cc_fracs/measurements.poly"
-
-
-poly2fpq(input_file)
+# poly2fpq(input_file)
 

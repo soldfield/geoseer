@@ -3,7 +3,8 @@ Scripts to import data from an ascii formatted file containing multiple polyline
 
 The file should have no header, with data starting on the first line.
 
-Each polyline should be listed as a tab-deliminated string of coordinates, with either two or three coordinates per line.
+Each polyline should be listed as a tab-deliminated string of coordinates,
+with either two or three coordinates per line.
 These columns should be X and Y (and optionally Z).
 
 Despite handling 3D coordinates, the code assumes that the dataset may be safely projected to 2D.
@@ -15,7 +16,6 @@ a planar surface. For example a cliff face that is more extensive laterally and 
 import numpy as np
 import matplotlib.pyplot as plt
 from shapely.geometry import MultiLineString
-# from shapely.geometry import LineString, asLineString, asMultiLineString
 from shapely.affinity import rotate
 import os
 
@@ -59,7 +59,9 @@ def calculate_bounding_rectangle(all_lines):
     return bounding_rectangle
 
 def plot_all_fracs_xy_plane(all_lines):
-    "Plots all lines extracted from file on X and Y axes."
+    """
+    Plots all lines extracted from file on X and Y axes.
+    """
     #plot individual fractures
     for i in all_lines:
         x, y = i.xy
@@ -135,7 +137,10 @@ def search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj):
     """
     Script to identify fractures that exist between two defined x values.
     All other coordinates ignored.
-    Returns a list of shapely linestrings
+
+    :param window_x_min: start of x window
+    :param window_x_max: end of x window
+    :return active_lines: A list of shapely linestrings
     """
 
     active_lines = []
@@ -151,35 +156,44 @@ def search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj):
     active_lines = MultiLineString(active_lines)
     return active_lines
 
-input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
-file_path = os.path.normpath(input_file)
-coord_list = extract_coordinates_from_xyz_file(file_path)
-all_lines = make_linestring_list(coord_list)
-bounding_rectangle = calculate_bounding_rectangle(all_lines)
-# plot_all_fracs_xy_plane(all_lines)
-angle = bounding_box_long_axis(bounding_rectangle)
-# TODO: automate identification of the origin
-origin = (560420,6323600,0)
-reproj_bound_box = rotate(bounding_rectangle, angle, origin, use_radians=False)
-all_lines_reproj = reproject_to_local_crs(all_lines, angle, origin)
+def full_frac_interp_process_example(input_polyfile):
+    """
+
+    :param input_polyfile:
+    :return:
+    """
+
+    input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
+    file_path = os.path.normpath(input_file)
+    coord_list = extract_coordinates_from_xyz_file(file_path)
+    all_lines = make_linestring_list(coord_list)
+    bounding_rectangle = calculate_bounding_rectangle(all_lines)
+
+    # plot_all_fracs_xy_plane(all_lines)
+    angle = bounding_box_long_axis(bounding_rectangle)
+
+    # TODO: automate origin identfication
+    origin = (560420,6323600,0)
+    # reproj_bound_box = rotate(bounding_rectangle, angle, origin, use_radians=False)
+    all_lines_reproj = reproject_to_local_crs(all_lines, angle, origin)
 
 
-plot_xz_linelist(all_lines_reproj, origin)
+    plot_xz_linelist(all_lines_reproj, origin)
 
 #%%
 
-window_x_min, window_x_max = 0, 1
+# window_x_min, window_x_max = 0, 1
 
-active_lines = search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj)
+# active_lines = search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj)
 
-# Plot active lines
-plot_xz_linelist(active_lines, origin)
-
+# # Plot active lines
+# plot_xz_linelist(active_lines, origin)
 
 #%%
-# pipe to fracpaqpy
+
+# TODO: pipe to fracpaqpy
 
 # make local coordinate list
 
-#%%
+
 
