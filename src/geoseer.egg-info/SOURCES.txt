@@ -1,0 +1,15 @@
+README.md
+pyproject.toml
+setup.cfg
+setup.py
+src/geoseer/__init__.py
+src/geoseer/crs_transform.py
+src/geoseer/nav_data.py
+src/geoseer/poly2fpq.py
+src/geoseer/poly_frac_interp_processing.py
+src/geoseer.egg-info/PKG-INFO
+src/geoseer.egg-info/SOURCES.txt
+src/geoseer.egg-info/dependency_links.txt
+src/geoseer.egg-info/not-zip-safe
+src/geoseer.egg-info/requires.txt
+src/geoseer.egg-info/top_level.txt
