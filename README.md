@@ -11,5 +11,5 @@ WORK IN PROGRESS
 This tool extracts data from plain text files formatted with header fields above data tables.
 
 ## poly2fpq: Conversion to FracPaQ format
-Tool for the conversion of files contining polylines to FracPaQ formats (Healy et al., 2017). Designed for use of
+Tool for the conversion of files containing polylines to FracPaQ formats (Healy et al., 2017). Designed for use of
 linestrings representing fracture traces.
