@@ -133,7 +133,7 @@ def plot_xz_linelist(line_list, origin):
     plt.xlabel("Lateral distance from left/North (m)")
     plt.show()
 
-def search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj):
+def search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj, origin):
     """
     Script to identify fractures that exist between two defined x values.
     All other coordinates ignored.
@@ -146,7 +146,7 @@ def search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj):
     active_lines = []
     for line in all_lines_reproj:
         x_list, y_list = line.xy
-        x_list = [i -560400 for i in x_list]
+        x_list = [i - origin[0] for i in x_list]
         line_x_max = np.max(x_list)
         line_x_min = np.min(x_list)
         # if line exists in search window do something
@@ -156,14 +156,17 @@ def search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj):
     active_lines = MultiLineString(active_lines)
     return active_lines
 
-def full_frac_interp_process_example(input_polyfile):
+def full_frac_interp_process_example(input_file, origin):
     """
-
-    :param input_polyfile:
-    :return:
+    Function that calls each of the functions above to convert a poly file
+    into a list of polylines each of which represent a fracture and output a 
+    figure in the XZ plane.
+    
+    :param input_polyfile: file from cloud compare in our use case
+    :return all_lines_reproj: list of polylines
     """
-
-    input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
+    
+    
     file_path = os.path.normpath(input_file)
     coord_list = extract_coordinates_from_xyz_file(file_path)
     all_lines = make_linestring_list(coord_list)
@@ -173,27 +176,156 @@ def full_frac_interp_process_example(input_polyfile):
     angle = bounding_box_long_axis(bounding_rectangle)
 
     # TODO: automate origin identfication
-    origin = (560420,6323600,0)
+    # origin = (560420,6323600,0) # for Rørdal, note X, Y, Z, Z can be changed to match other figures
+    
     # reproj_bound_box = rotate(bounding_rectangle, angle, origin, use_radians=False)
     all_lines_reproj = reproject_to_local_crs(all_lines, angle, origin)
 
 
     plot_xz_linelist(all_lines_reproj, origin)
+    
+    return all_lines_reproj
+
+
+def xy_to_fracpaq(line_list: list, out_path: str) -> None:
+    """
+    Converts a shapely multilinestring object to a FracPaQ file, extracting data to a two-dimensional plane
+    oriented to intersect the x and y axes (xy-plane).
+
+    :param line_list: shapely Multilinestring object of lines defined by two or three coordinates, XY(Z)
+    :param out_path: string of file path, name and any extensions (e.g. '.txt')
+    :return None: generates text file in fracpaq format at out_path
+    """
+    string_out = ""
+
+    for i in range(len(line_list)):
+        # retrieve coordinates for line
+        ln_coords = np.array(line_list[i].coords)
+        i_arr = ln_coords[:, 0]
+        j_arr = ln_coords[:, 1]
+        plt.plot(i_arr, j_arr)
+
+        for i in range(len(i_arr)):
+            string_out += str(i_arr[i]) + "\t" + str(j_arr[i]) + "\t"
+            # print(i, len(i_arr))
+            if i == len(i_arr)-1:
+                # print(i)
+                string_out += "\n"
+                # list_string_lines_out.append(string_line_out)
+    # write to output file
+    with open(out_path, "w") as f_out:
+        f_out.write(string_out)
+
+    plt.ylabel("Northing (m)")
+    plt.xlabel("Easting (m)")
+    plt.show()
+
 
 #%%
 
-# window_x_min, window_x_max = 0, 1
+def xz_to_fracpaq(line_list: list, out_path: str) -> None:
+    """
+    Converts a shapely multilinestring object to a FracPaQ file, extracting data to a two-dimensional plane
+    oriented to intersect the x and y axes (xy-plane).
 
-# active_lines = search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj)
+    :param line_list: shapely Multilinestring object of lines defined by two or three coordinates, XY(Z)
+    :param out_path: string of file path, name and any extensions (e.g. '.txt')
+    :return None: generates text file in fracpaq format at out_path
+    """
+    string_out = ""
+
+    for i in range(len(line_list)):
+        # retrieve coordinates for line
+        ln_coords = np.array(line_list[i].coords)
+        i_arr = ln_coords[:, 0]
+        j_arr = ln_coords[:, 2]
+        plt.plot(i_arr, j_arr)
+
+        for i in range(len(i_arr)):
+            string_out += str(i_arr[i]) + "\t" + str(j_arr[i]) + "\t"
+            # print(i, len(i_arr))
+            if i == len(i_arr)-1:
+                # print(i)
+                string_out += "\n"
+                # list_string_lines_out.append(string_line_out)
+    # write to output file
+    with open(out_path, "w") as f_out:
+        f_out.write(string_out)
+
+    plt.ylabel("Vertical distance (m)")
+    plt.xlabel("Horizontal distance (m)")
+    plt.show()
+
+
+# input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
+input_file = "C:\\Users\\shl459\\Desktop\\DTU_20201021\\measurements.poly"
+
+origin = (560420,6323600,0)
+all_lines_reprojected = full_frac_interp_process_example(input_file, origin)
+
+
+#%%
+
+xz_to_fracpaq(all_lines_reprojected[50], )
+
+# ## plot a selected interval
+
+# window_x_min, window_x_max = 0,20 
+
+# active_lines = search_fractures_x_window(window_x_min, window_x_max, all_lines_reprojected, origin)
 
 # # Plot active lines
 # plot_xz_linelist(active_lines, origin)
 
+# # folder_path = os.getcwd()
+# # input_file = "/data/tala_cc_fracs/measurements.poly"
+
+# # line_list = active_lines
+# # xz_to_fracpaq(line_list)
+
+# # xy_to_fracpaq(line_list, out_path)
+
+# out_dir = os.getcwd()
+# out_file_name = 'test.txt'
+# out_path = os.path.join(out_dir, out_file_name)
+
+# xy_to_fracpaq(active_lines, out_path)
+
+
 #%%
 
-# TODO: pipe to fracpaqpy
 
-# make local coordinate list
+# Run lines 1-265 once
+# Define window size and wall length 
+# Then run below once
+# Will output to working directory (where this code is saved)
 
+# Looped output of sample windows
 
+window_size = int(10)
+quarry_wall_length = int(1000)
+number_of_windows = int(quarry_wall_length / window_size)
+out_directory = os.getcwd()
 
+for i in range(0,number_of_windows):
+    plt.clf()
+    
+    window_x_min = window_size * i
+    window_x_max = window_size * (i +1)
+
+    fx_lines = search_fractures_x_window(window_x_min, window_x_max, all_lines_reprojected, origin)
+    plot_xz_linelist(fx_lines, origin)
+    
+    # plt.xlim([window_x_min,window_x_max])
+    
+    name = "fpq_input_window_" + str(window_x_min) + "_to_" + str(window_x_max)
+    
+    plot_file_name = name + ".png"
+    
+    plt.savefig(plot_file_name)
+    
+    out_file_name = name +'.txt'
+    out_path = os.path.join(out_directory, out_file_name)
+    xz_to_fracpaq(fx_lines, out_path)
+
+# xy_to_fracpaq(fx_lines, out_path)
