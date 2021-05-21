@@ -179,7 +179,7 @@ def full_frac_interp_process_example(input_file, origin):
     # origin = (560420,6323600,0) # for Rørdal, note X, Y, Z, Z can be changed to match other figures
     
     # reproj_bound_box = rotate(bounding_rectangle, angle, origin, use_radians=False)
-    all_lines_reproj = reproject_to_local_crs(all_lines, angle, origin)
+    all_lines_reproj = reproject_to_local_crs(all_lines, angle, origin)  # includes plot
 
 
     plot_xz_linelist(all_lines_reproj, origin)
@@ -221,6 +221,7 @@ def xy_to_fracpaq(line_list: list, out_path: str) -> None:
     plt.show()
 
 
+
 #%%
 
 def xz_to_fracpaq(line_list: list, out_path: str) -> None:
@@ -257,11 +258,15 @@ def xz_to_fracpaq(line_list: list, out_path: str) -> None:
     plt.show()
 
 
-# input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
-input_file = "C:\\Users\\shl459\\Desktop\\DTU_20201021\\measurements.poly"
+input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
+# input_file = "C:\\Users\\shl459\\Desktop\\DTU_20201021\\measurements.poly"
 
-origin = (560420,6323600,0)
+origin = [560420,6323600,0]
 all_lines_reprojected = full_frac_interp_process_example(input_file, origin)
+
+#%%
+
+all_lines_reprojected
 
 
 #%%
@@ -329,3 +334,59 @@ for i in range(0,number_of_windows):
     xz_to_fracpaq(fx_lines, out_path)
 
 # xy_to_fracpaq(fx_lines, out_path)
+
+
+#%%
+
+
+
+file_path = os.path.normpath(input_file)
+coord_list = extract_coordinates_from_xyz_file(file_path)
+all_lines = make_linestring_list(coord_list)
+bounding_rectangle = calculate_bounding_rectangle(all_lines)
+
+# plot_all_fracs_xy_plane(all_lines)
+angle = bounding_box_long_axis(bounding_rectangle)
+
+# TODO: automate origin identfication
+# origin = (560420,6323600,0) # for Rørdal, note X, Y, Z, Z can be changed to match other figures
+
+# reproj_bound_box = rotate(bounding_rectangle, angle, origin, use_radians=False)
+#all_lines_reproj = reproject_to_local_crs(all_lines, angle, origin)  # includes plot
+
+#%%
+
+all_lines_reproj = rotate(all_lines, angle, origin, use_radians=False)
+
+#%%
+bup = all_lines_reproj
+
+
+#%%
+
+
+
+for i in range(len(all_lines_reproj)):
+    ln = all_lines_reproj[i]
+    x = np.array([c[0] for c in ln.coords])
+    x = x - origin[0]
+    y = np.array([c[1] for c in ln.coords])
+    y = y - origin[1]
+    z = np.array([c[2] for c in ln.coords])
+    if len(origin) == 3:
+        z = z - origin[2]
+    plt.plot(x,y)
+
+    reproj_ln = zip(x,y,z)
+
+    all_lines_reproj[i] = reproj_ln
+
+    #insert line back into file
+
+plt.ylabel("Lateral distance from lakeside/West (m)")
+plt.xlabel("Lateral distance from left/North (m)")
+plt.show()
+
+
+
+#%%
