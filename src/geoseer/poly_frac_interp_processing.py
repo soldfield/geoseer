@@ -273,8 +273,8 @@ def find_min_x(line_list):
     min_x = np.min(min_x_ls)
     return min_x
 
-input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
-# input_file = "C:\\Users\\shl459\\Desktop\\DTU_20201021\\measurements.poly"
+# input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
+input_file = "C:\\Users\\shl459\\Desktop\\DTU_20201021\\measurements.poly"
 
 origin = [560315,6323600,0]
 all_lines_reprojected = full_frac_interp_process_example(input_file, origin, False)
@@ -311,11 +311,6 @@ for i in range(0,number_of_windows):
 
     out_fig_name = name +'.png'
     xz_to_fracpaq(fx_lines, out_fig_name)
-
-# xy_to_fracpaq(fx_lines, out_path)
-
-
-#%%
 
 
 
