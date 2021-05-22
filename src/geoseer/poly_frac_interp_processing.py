@@ -90,13 +90,16 @@ def plot_bounding_box(reproj_bound_box):
 
 def reproject_to_local_crs(all_lines, angle, origin):
     """
-    Note this function does not update or return reprojected coords.
-    Requires improvement in future to actually calculate these coords.
+    Reprojects coordinates to the provided origin and rotation angle.
+    Returns the reprojected coordinates in a shapely MultiLineString.
     """
     # rotate original interpreted lines
     all_lines_reproj = rotate(all_lines, angle, origin, use_radians=False)
 
-    for ln in all_lines_reproj:
+    output_lns = []
+
+    for i in range(len(all_lines_reproj)):
+        ln = all_lines_reproj[i]
         x = np.array([c[0] for c in ln.coords])
         x = x - origin[0]
         y = np.array([c[1] for c in ln.coords])
@@ -104,28 +107,31 @@ def reproject_to_local_crs(all_lines, angle, origin):
         z = np.array([c[2] for c in ln.coords])
         if len(origin) == 3:
             z = z - origin[2]
-        plt.plot(x,y)
+        plt.plot(x, y)
+
+        #
+        reproj_ln = list(zip(x, y, z))
+        output_lns.append(reproj_ln)
+
+
+    output_lns = MultiLineString(output_lns)
 
     plt.ylabel("Lateral distance from lakeside/West (m)")
     plt.xlabel("Lateral distance from left/North (m)")
     plt.show()
-    return all_lines_reproj
+    return output_lns
 
-def plot_xz_linelist(line_list, origin):
+def plot_xz_linelist(line_list):
     """
-
+    Plots x and z of all lines in list.
+    Assumes three coords with x and z in first and third column, respectively.
     :param line_list:
-    :param origin:
-    :return:
     """
     for ln in line_list:
         x = np.array([c[0] for c in ln.coords])
-        x = x - origin[0]
-        y = np.array([c[1] for c in ln.coords])
-        y = y - origin[1]
+        #y = np.array([c[1] for c in ln.coords])
         z = np.array([c[2] for c in ln.coords])
-        if len(origin) == 3:
-            z = z - origin[2]
+
         plt.plot(x, z)
 
     # plt.xlim(0, 50) # limits section of wall presented
@@ -133,7 +139,8 @@ def plot_xz_linelist(line_list, origin):
     plt.xlabel("Lateral distance from left/North (m)")
     plt.show()
 
-def search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj, origin):
+
+def search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj):
     """
     Script to identify fractures that exist between two defined x values.
     All other coordinates ignored.
@@ -146,7 +153,6 @@ def search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj, orig
     active_lines = []
     for line in all_lines_reproj:
         x_list, y_list = line.xy
-        x_list = [i - origin[0] for i in x_list]
         line_x_max = np.max(x_list)
         line_x_min = np.min(x_list)
         # if line exists in search window do something
@@ -156,7 +162,7 @@ def search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj, orig
     active_lines = MultiLineString(active_lines)
     return active_lines
 
-def full_frac_interp_process_example(input_file, origin):
+def full_frac_interp_process_example(input_file, origin, plot=False):
     """
     Function that calls each of the functions above to convert a poly file
     into a list of polylines each of which represent a fracture and output a 
@@ -181,9 +187,9 @@ def full_frac_interp_process_example(input_file, origin):
     # reproj_bound_box = rotate(bounding_rectangle, angle, origin, use_radians=False)
     all_lines_reproj = reproject_to_local_crs(all_lines, angle, origin)  # includes plot
 
+    if plot == True:
+        plot_xz_linelist(all_lines_reproj, origin)
 
-    plot_xz_linelist(all_lines_reproj, origin)
-    
     return all_lines_reproj
 
 
@@ -220,11 +226,10 @@ def xy_to_fracpaq(line_list: list, out_path: str) -> None:
     plt.xlabel("Easting (m)")
     plt.show()
 
+    plot_file_name = out_path[:-4]+".png"
+    plt.savefig(plot_file_name)
 
-
-#%%
-
-def xz_to_fracpaq(line_list: list, out_path: str) -> None:
+def xz_to_fracpaq(line_list: list, out_fig_name: str) -> None:
     """
     Converts a shapely multilinestring object to a FracPaQ file, extracting data to a two-dimensional plane
     oriented to intersect the x and y axes (xy-plane).
@@ -255,52 +260,28 @@ def xz_to_fracpaq(line_list: list, out_path: str) -> None:
 
     plt.ylabel("Vertical distance (m)")
     plt.xlabel("Horizontal distance (m)")
+
+    plt.savefig(out_fig_name)
     plt.show()
 
+def find_min_x(line_list):
+    min_x_ls = []
+
+    for line in line_list:
+        min_x_ls.append(line.bounds[0])
+
+    min_x = np.min(min_x_ls)
+    return min_x
 
 input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
 # input_file = "C:\\Users\\shl459\\Desktop\\DTU_20201021\\measurements.poly"
 
-origin = [560420,6323600,0]
-all_lines_reprojected = full_frac_interp_process_example(input_file, origin)
+origin = [560315,6323600,0]
+all_lines_reprojected = full_frac_interp_process_example(input_file, origin, False)
 
 #%%
 
-all_lines_reprojected
-
-
-#%%
-
-xz_to_fracpaq(all_lines_reprojected[50], )
-
-# ## plot a selected interval
-
-# window_x_min, window_x_max = 0,20 
-
-# active_lines = search_fractures_x_window(window_x_min, window_x_max, all_lines_reprojected, origin)
-
-# # Plot active lines
-# plot_xz_linelist(active_lines, origin)
-
-# # folder_path = os.getcwd()
-# # input_file = "/data/tala_cc_fracs/measurements.poly"
-
-# # line_list = active_lines
-# # xz_to_fracpaq(line_list)
-
-# # xy_to_fracpaq(line_list, out_path)
-
-# out_dir = os.getcwd()
-# out_file_name = 'test.txt'
-# out_path = os.path.join(out_dir, out_file_name)
-
-# xy_to_fracpaq(active_lines, out_path)
-
-
-#%%
-
-
-# Run lines 1-265 once
+# Run lines 1-275 once
 # Define window size and wall length 
 # Then run below once
 # Will output to working directory (where this code is saved)
@@ -309,83 +290,32 @@ xz_to_fracpaq(all_lines_reprojected[50], )
 
 window_size = int(10)
 quarry_wall_length = int(1000)
-number_of_windows = int(quarry_wall_length / window_size)
+number_of_windows = 2 #int(quarry_wall_length / window_size)
 out_directory = os.getcwd()
+
+line_list = all_lines_reprojected
 
 for i in range(0,number_of_windows):
     plt.clf()
-    
-    window_x_min = window_size * i
-    window_x_max = window_size * (i +1)
 
-    fx_lines = search_fractures_x_window(window_x_min, window_x_max, all_lines_reprojected, origin)
-    plot_xz_linelist(fx_lines, origin)
-    
-    # plt.xlim([window_x_min,window_x_max])
-    
+    min_x = find_min_x(line_list)
+
+    window_x_min = (window_size * i) + min_x
+    window_x_max = (window_size * (i +1)) + min_x
+
     name = "fpq_input_window_" + str(window_x_min) + "_to_" + str(window_x_max)
-    
-    plot_file_name = name + ".png"
-    
-    plt.savefig(plot_file_name)
-    
     out_file_name = name +'.txt'
     out_path = os.path.join(out_directory, out_file_name)
-    xz_to_fracpaq(fx_lines, out_path)
+
+    fx_lines = search_fractures_x_window(window_x_min, window_x_max, line_list)
+
+    out_fig_name = name +'.png'
+    xz_to_fracpaq(fx_lines, out_fig_name)
 
 # xy_to_fracpaq(fx_lines, out_path)
 
 
 #%%
-
-
-
-file_path = os.path.normpath(input_file)
-coord_list = extract_coordinates_from_xyz_file(file_path)
-all_lines = make_linestring_list(coord_list)
-bounding_rectangle = calculate_bounding_rectangle(all_lines)
-
-# plot_all_fracs_xy_plane(all_lines)
-angle = bounding_box_long_axis(bounding_rectangle)
-
-# TODO: automate origin identfication
-# origin = (560420,6323600,0) # for Rørdal, note X, Y, Z, Z can be changed to match other figures
-
-# reproj_bound_box = rotate(bounding_rectangle, angle, origin, use_radians=False)
-#all_lines_reproj = reproject_to_local_crs(all_lines, angle, origin)  # includes plot
-
-#%%
-
-all_lines_reproj = rotate(all_lines, angle, origin, use_radians=False)
-
-#%%
-bup = all_lines_reproj
-
-
-#%%
-
-
-
-for i in range(len(all_lines_reproj)):
-    ln = all_lines_reproj[i]
-    x = np.array([c[0] for c in ln.coords])
-    x = x - origin[0]
-    y = np.array([c[1] for c in ln.coords])
-    y = y - origin[1]
-    z = np.array([c[2] for c in ln.coords])
-    if len(origin) == 3:
-        z = z - origin[2]
-    plt.plot(x,y)
-
-    reproj_ln = zip(x,y,z)
-
-    all_lines_reproj[i] = reproj_ln
-
-    #insert line back into file
-
-plt.ylabel("Lateral distance from lakeside/West (m)")
-plt.xlabel("Lateral distance from left/North (m)")
-plt.show()
 
 
 
