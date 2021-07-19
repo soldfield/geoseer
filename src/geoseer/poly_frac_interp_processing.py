@@ -15,6 +15,7 @@ a planar surface. For example a cliff face that is more extensive laterally and 
 """
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from shapely.geometry import MultiLineString
 from shapely.affinity import rotate
 import os
@@ -282,6 +283,9 @@ def xz_to_fracpaq(line_list: list, out_fig_name: str, xlim: list) -> None:
     """
     string_out = ""
 
+    fig, ax = plt.subplots()
+    #fig.figure(figsize=(8,3), dpi=300) # change figure size and resolution
+
     for i in range(len(line_list)):
         # retrieve coordinates for line
         ln_coords = np.array(line_list[i].coords)
@@ -291,7 +295,7 @@ def xz_to_fracpaq(line_list: list, out_fig_name: str, xlim: list) -> None:
         dip_ij = dip_from_ij_arr(i_arr, j_arr)
         dip_rgba = rgba_col_val(dip_ij, cmap_name='viridis', scale_min=0.0, scale_max=90.0)
 
-        plt.plot(i_arr, j_arr, color=dip_rgba)
+        ax.plot(i_arr, j_arr, color=dip_rgba)
 
         for i in range(len(i_arr)):
             string_out += str(i_arr[i]) + "\t" + str(j_arr[i]) + "\t"
@@ -304,11 +308,12 @@ def xz_to_fracpaq(line_list: list, out_fig_name: str, xlim: list) -> None:
     with open(out_path, "w") as f_out:
         f_out.write(string_out)
 
-    plt.xlim(xlim[0], xlim[1])
-    plt.ylabel("Vertical distance (m)")
-    plt.xlabel("Horizontal distance (m)")
+    ax.set_xlim(xlim[0], xlim[1])
+    ax.set_ylabel("Vertical distance (m)")
+    ax.set_xlabel("Horizontal distance (m)")
+    ax.set_aspect('equal')
 
-    plt.savefig(out_fig_name)
+    fig.savefig(out_fig_name)
     plt.show()
 
 def find_min_x(line_list, round_down = True):
@@ -340,9 +345,9 @@ all_lines_reprojected = full_frac_interp_process_example(input_file, origin, Fal
 
 # Looped output of sample windows
 
-window_size = int(10)
+window_size = int(40)
 quarry_wall_length = int(1000)
-number_of_windows = 2 #int(quarry_wall_length / window_size)
+number_of_windows = 1 #int(quarry_wall_length / window_size)
 out_directory = os.getcwd()
 
 line_list = all_lines_reprojected
@@ -368,4 +373,96 @@ for i in range(0,number_of_windows):
 print_colorbar()
 
 #%%
+
+def xz_to_fracpaq2(line_list: list, out_fig_name: str, xlim: list) -> None:
+    """
+    Converts a shapely multilinestring object to a FracPaQ file, extracting data to a two-dimensional plane
+    oriented to intersect the x and y axes (xy-plane).
+
+    :param line_list: shapely Multilinestring object of lines defined by two or three coordinates, XY(Z)
+    :param out_path: string of file path, name and any extensions (e.g. '.txt')
+    :return None: generates text file in fracpaq format at out_path
+    """
+    string_out = ""
+
+    fig, (ax1, ax2) = plt.subplots(nrows=2)
+    #fig.figure(figsize=(8,3), dpi=300) # change figure size and resolution
+
+    for i in range(len(line_list)):
+        # retrieve coordinates for line
+        ln_coords = np.array(line_list[i].coords)
+        i_arr = ln_coords[:, 0]
+        j_arr = ln_coords[:, 2]
+        k_arr = ln_coords[:, 1]
+
+        #df = pd.DataFrame(j_arr, k_arr, columns = ['j', 'k'])
+
+
+        dip_ij = dip_from_ij_arr(i_arr, j_arr)
+        dip_rgba = rgba_col_val(dip_ij, cmap_name='viridis', scale_min=0.0, scale_max=90.0)
+        ax1.plot(i_arr, k_arr, 'k.')
+        ax2.plot(i_arr, j_arr, color=dip_rgba)
+
+        for i in range(len(i_arr)):
+            string_out += str(i_arr[i]) + "\t" + str(j_arr[i]) + "\t"
+            # print(i, len(i_arr))
+            if i == len(i_arr)-1:
+                # print(i)
+                string_out += "\n"
+                # list_string_lines_out.append(string_line_out)
+    # write to output file
+    with open(out_path, "w") as f_out:
+        f_out.write(string_out)
+
+    ax2.set_xlim(xlim[0], xlim[1])
+    ax2.set_ylabel("Vertical distance (m)")
+    ax2.set_xlabel("Horizontal distance (m)")
+    ax2.set_aspect('equal')
+
+    fig.savefig(out_fig_name)
+    plt.show()
+    return i_arr, j_arr, k_arr
+
+
+# Looped output of sample windows
+
+window_size = int(40)
+quarry_wall_length = int(1000)
+number_of_windows = 1 #int(quarry_wall_length / window_size)
+out_directory = os.getcwd()
+
+line_list = all_lines_reprojected
+
+for i in range(0,number_of_windows):
+    plt.clf()
+
+    min_x = float(find_min_x(line_list, round_down=True))
+
+    window_x_min = (window_size * i) + min_x
+    window_x_max = (window_size * (i +1)) + min_x
+    xlim = [window_x_min, window_x_max]
+
+    name = "fpq_input_window_" + str(window_x_min) + "_to_" + str(window_x_max)
+    out_file_name = name +'.txt'
+    out_path = os.path.join(out_directory, out_file_name)
+
+    fx_lines = search_fractures_x_window(window_x_min, window_x_max, line_list)
+
+    out_fig_name = name +'.png'
+    i_arr, j_arr, k_arr = xz_to_fracpaq2(fx_lines, out_fig_name, xlim)
+
+print_colorbar()
+
+#%%
+
+# import pandas as pd
+#
+# jk = np.asarray([j_arr, k_arr])
+# df = pd.DataFrame(jk)
+# df = df.transpose()
+#
+# df['sma3']=df.iloc[:,1].rolling(window=10).mean()
+#
+# plt.plot(df[0], df['sma3'])
+# plt.show()
 
