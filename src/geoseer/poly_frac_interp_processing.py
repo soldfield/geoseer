@@ -18,6 +18,8 @@ import matplotlib.pyplot as plt
 from shapely.geometry import MultiLineString
 from shapely.affinity import rotate
 import os
+import math
+import matplotlib as mpl
 
 def extract_coordinates_from_xyz_file(file_path):
     with open(file_path) as f_in:
@@ -193,6 +195,37 @@ def full_frac_interp_process_example(input_file, origin, plot=False):
     return all_lines_reproj
 
 
+def dip_from_ij_arr(i_arr, j_arr) -> float:
+    """
+    Returns a dip angle in dagrees from the start and end point of a line defined by a list of i and j coordinates
+    :param i_arr: list of i coordinates
+    :param j_arr: list of j coordinates
+    :return: float of dip in degrees
+    """
+
+    p1_x, p2_x = i_arr[0], i_arr[-1]
+    p1_y, p2_y = j_arr[0], j_arr[-1]
+
+    max_x = max(p1_x, p2_x)
+    min_x = min(p1_x, p2_x)
+
+    max_y = max(p1_y, p2_y)
+    min_y = min(p1_y, p2_y)
+
+    m = (max_y - min_y) / (max_x - min_x)
+
+    dip = math.degrees(math.atan(m))
+
+    return dip
+
+
+def rgba_col_val(value, cmap_name='Spectral', scale_min=0.0, scale_max=90.0):
+    cmap = mpl.cm.get_cmap(cmap_name) # insert colormap name here to change
+    norm = mpl.colors.Normalize(vmin=scale_min, vmax=scale_max)
+    rgb_val = cmap(norm(value))
+    return rgb_val
+
+
 def xy_to_fracpaq(line_list: list, out_path: str) -> None:
     """
     Converts a shapely multilinestring object to a FracPaQ file, extracting data to a two-dimensional plane
@@ -245,7 +278,11 @@ def xz_to_fracpaq(line_list: list, out_fig_name: str) -> None:
         ln_coords = np.array(line_list[i].coords)
         i_arr = ln_coords[:, 0]
         j_arr = ln_coords[:, 2]
-        plt.plot(i_arr, j_arr)
+
+        dip_ij = dip_from_ij_arr(i_arr, j_arr)
+        dip_rgba = rgba_col_val(dip_ij, cmap_name='Spectral', scale_min=0.0, scale_max=90.0)
+
+        plt.plot(i_arr, j_arr, color=dip_rgba)
 
         for i in range(len(i_arr)):
             string_out += str(i_arr[i]) + "\t" + str(j_arr[i]) + "\t"
@@ -264,17 +301,22 @@ def xz_to_fracpaq(line_list: list, out_fig_name: str) -> None:
     plt.savefig(out_fig_name)
     plt.show()
 
-def find_min_x(line_list):
+def find_min_x(line_list, round_down = True):
     min_x_ls = []
 
     for line in line_list:
         min_x_ls.append(line.bounds[0])
 
     min_x = np.min(min_x_ls)
+
+    if round_down == True:
+        min_x = math.floor(min_x)
+
     return min_x
 
-# input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
-input_file = "C:\\Users\\shl459\\Desktop\\DTU_20201021\\measurements.poly"
+#%%
+input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
+# input_file = "C:\\Users\\shl459\\Desktop\\DTU_20201021\\measurements.poly"
 
 origin = [560315,6323600,0]
 all_lines_reprojected = full_frac_interp_process_example(input_file, origin, False)
@@ -298,7 +340,7 @@ line_list = all_lines_reprojected
 for i in range(0,number_of_windows):
     plt.clf()
 
-    min_x = find_min_x(line_list)
+    min_x = find_min_x(line_list, round_down=True)
 
     window_x_min = (window_size * i) + min_x
     window_x_max = (window_size * (i +1)) + min_x
@@ -315,3 +357,40 @@ for i in range(0,number_of_windows):
 
 
 #%%
+
+def dip_from_ij_arr(i_arr, j_arr) -> float:
+    """
+    Returns a dip angle in dagrees from the start and end point of a line defined by a list of i and j coordinates
+    :param i_arr: list of i coordinates
+    :param j_arr: list of j coordinates
+    :return: float of dip in degrees
+    """
+
+    p1_x, p2_x = i_arr[0], i_arr[-1]
+    p1_y, p2_y = j_arr[0], j_arr[-1]
+
+    max_x = max(p1_x, p2_x)
+    min_x = min(p1_x, p2_x)
+
+    max_y = max(p1_y, p2_y)
+    min_y = min(p1_y, p2_y)
+
+    m = (max_y - min_y) / (max_x - min_x)
+
+    dip = math.degrees(math.atan(m))
+
+    return dip
+
+def rgba_col_val(value, cmap_name='Spectral', scale_min=0.0, scale_max=90.0):
+    cmap = mpl.cm.get_cmap(cmap_name) # insert colormap name here to change
+    norm = mpl.colors.Normalize(vmin=scale_min, vmax=scale_max)
+    rgb_val = cmap(norm(value))
+    return rgb_val
+
+rgba_col_val(50, cmap_name='Spectral', scale_min=0.0, scale_max=90.0)
+
+
+#plot_scale_bar(cmap_name='Spectral', scale_min=0.0, scale_max=90.0):
+cmap = mpl.cm.get_cmap(cmap_name)  # insert colormap name here to change
+norm = mpl.colors.Normalize(vmin=scale_min, vmax=scale_max)
+rgb_val = cmap(norm(value))
