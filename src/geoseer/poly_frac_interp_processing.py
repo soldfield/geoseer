@@ -226,6 +226,15 @@ def rgba_col_val(value, cmap_name='Spectral', scale_min=0.0, scale_max=90.0):
     return rgb_val
 
 
+def print_colorbar(cmap_name='viridis', scale_min=0.0, scale_max=90.0) -> None:
+    cmap = mpl.cm.get_cmap(cmap_name)  # insert colormap name here to change
+    norm = mpl.colors.Normalize(vmin=scale_min, vmax=scale_max)
+    fig, ax = plt.subplots(figsize=(6, 1))
+    fig.subplots_adjust(bottom=0.5)
+    fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), cax=ax, orientation='horizontal', label='Dip (degrees)')
+    plt.show()
+
+
 def xy_to_fracpaq(line_list: list, out_path: str) -> None:
     """
     Converts a shapely multilinestring object to a FracPaQ file, extracting data to a two-dimensional plane
@@ -280,7 +289,7 @@ def xz_to_fracpaq(line_list: list, out_fig_name: str) -> None:
         j_arr = ln_coords[:, 2]
 
         dip_ij = dip_from_ij_arr(i_arr, j_arr)
-        dip_rgba = rgba_col_val(dip_ij, cmap_name='Spectral', scale_min=0.0, scale_max=90.0)
+        dip_rgba = rgba_col_val(dip_ij, cmap_name='viridis', scale_min=0.0, scale_max=90.0)
 
         plt.plot(i_arr, j_arr, color=dip_rgba)
 
@@ -354,43 +363,7 @@ for i in range(0,number_of_windows):
     out_fig_name = name +'.png'
     xz_to_fracpaq(fx_lines, out_fig_name)
 
-
+print_colorbar()
 
 #%%
 
-def dip_from_ij_arr(i_arr, j_arr) -> float:
-    """
-    Returns a dip angle in dagrees from the start and end point of a line defined by a list of i and j coordinates
-    :param i_arr: list of i coordinates
-    :param j_arr: list of j coordinates
-    :return: float of dip in degrees
-    """
-
-    p1_x, p2_x = i_arr[0], i_arr[-1]
-    p1_y, p2_y = j_arr[0], j_arr[-1]
-
-    max_x = max(p1_x, p2_x)
-    min_x = min(p1_x, p2_x)
-
-    max_y = max(p1_y, p2_y)
-    min_y = min(p1_y, p2_y)
-
-    m = (max_y - min_y) / (max_x - min_x)
-
-    dip = math.degrees(math.atan(m))
-
-    return dip
-
-def rgba_col_val(value, cmap_name='Spectral', scale_min=0.0, scale_max=90.0):
-    cmap = mpl.cm.get_cmap(cmap_name) # insert colormap name here to change
-    norm = mpl.colors.Normalize(vmin=scale_min, vmax=scale_max)
-    rgb_val = cmap(norm(value))
-    return rgb_val
-
-rgba_col_val(50, cmap_name='Spectral', scale_min=0.0, scale_max=90.0)
-
-
-#plot_scale_bar(cmap_name='Spectral', scale_min=0.0, scale_max=90.0):
-cmap = mpl.cm.get_cmap(cmap_name)  # insert colormap name here to change
-norm = mpl.colors.Normalize(vmin=scale_min, vmax=scale_max)
-rgb_val = cmap(norm(value))
