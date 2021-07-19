@@ -271,7 +271,7 @@ def xy_to_fracpaq(line_list: list, out_path: str) -> None:
     plot_file_name = out_path[:-4]+".png"
     plt.savefig(plot_file_name)
 
-def xz_to_fracpaq(line_list: list, out_fig_name: str) -> None:
+def xz_to_fracpaq(line_list: list, out_fig_name: str, xlim: list) -> None:
     """
     Converts a shapely multilinestring object to a FracPaQ file, extracting data to a two-dimensional plane
     oriented to intersect the x and y axes (xy-plane).
@@ -304,6 +304,7 @@ def xz_to_fracpaq(line_list: list, out_fig_name: str) -> None:
     with open(out_path, "w") as f_out:
         f_out.write(string_out)
 
+    plt.xlim(xlim[0], xlim[1])
     plt.ylabel("Vertical distance (m)")
     plt.xlabel("Horizontal distance (m)")
 
@@ -349,10 +350,11 @@ line_list = all_lines_reprojected
 for i in range(0,number_of_windows):
     plt.clf()
 
-    min_x = find_min_x(line_list, round_down=True)
+    min_x = float(find_min_x(line_list, round_down=True))
 
     window_x_min = (window_size * i) + min_x
     window_x_max = (window_size * (i +1)) + min_x
+    xlim = [window_x_min, window_x_max]
 
     name = "fpq_input_window_" + str(window_x_min) + "_to_" + str(window_x_max)
     out_file_name = name +'.txt'
@@ -361,7 +363,7 @@ for i in range(0,number_of_windows):
     fx_lines = search_fractures_x_window(window_x_min, window_x_max, line_list)
 
     out_fig_name = name +'.png'
-    xz_to_fracpaq(fx_lines, out_fig_name)
+    xz_to_fracpaq(fx_lines, out_fig_name, xlim)
 
 print_colorbar()
 
