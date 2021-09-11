@@ -1,0 +1,1 @@
+FracNo	Set	Centre X	Centre Y	Centre Z	Radius	Dip	Azimuth	Active	
