@@ -184,7 +184,7 @@ def full_frac_interp_process_example(input_file, origin, plot=False):
     # plot_all_fracs_xy_plane(all_lines)
     angle = bounding_box_long_axis(bounding_rectangle)
 
-    # TODO: automate origin identfication
+    # TODO: automate origin identification
     # origin = (560420,6323600,0) # for Rørdal, note X, Y, Z, Z can be changed to match other figures
     
     # reproj_bound_box = rotate(bounding_rectangle, angle, origin, use_radians=False)
@@ -330,10 +330,11 @@ def find_min_x(line_list, round_down = True):
     return min_x
 
 #%%
+
 input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
 # input_file = "C:\\Users\\shl459\\Desktop\\DTU_20201021\\measurements.poly"
 
-origin = [560315,6323600,0]
+origin = [560315,6323604,0]
 all_lines_reprojected = full_frac_interp_process_example(input_file, origin, False)
 
 #%%
@@ -345,7 +346,7 @@ all_lines_reprojected = full_frac_interp_process_example(input_file, origin, Fal
 
 # Looped output of sample windows
 
-window_size = int(40)
+window_size = int(15)
 quarry_wall_length = int(1000)
 number_of_windows = 1 #int(quarry_wall_length / window_size)
 out_directory = os.getcwd()
