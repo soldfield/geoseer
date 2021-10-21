@@ -1,4 +1,3 @@
-
 import numpy as np
 from shapely.geometry import MultiLineString
 import os
@@ -41,12 +40,7 @@ input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs
 coord_list = extract_coordinates_from_xyz_file(input_file)
 lines = make_linestring_list(coord_list)
 
-
-#%%
-
 f = open("test.txt", "w")
-
-
 frac_count = len(lines)
 
 # write format header block
@@ -83,6 +77,5 @@ f.writelines("END Fracture\n")
 
 f.close()
 
-#%%
 
 
