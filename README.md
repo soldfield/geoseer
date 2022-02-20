@@ -1,4 +1,7 @@
+
 # geoseer
+https://img.shields.io/github/license/{username}/{repo-name}.svg
+
 The geoseer package provides a set of useful tools for common tasks undertaken by subsurface and surface professionals concerned with spatial data. The package talkes it's name from these individuals who may consider some element of what they work on to be a 'geo*' subject like: geology, geography, geophysics etc...
 
 ## nav_data: Navigation data calculations
