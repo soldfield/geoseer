@@ -1,6 +1,7 @@
 
 # geoseer
 ![Licence](https://img.shields.io/github/license/soldfield/geoseer.svg)
+![PyPI](https://pypi.python.org/pypi/geoseer)
 
 The geoseer package provides a set of useful tools for common tasks undertaken by subsurface and surface professionals concerned with spatial data. The package talkes it's name from these individuals who may consider some element of what they work on to be a 'geo*' subject like: geology, geography, geophysics etc...
 
