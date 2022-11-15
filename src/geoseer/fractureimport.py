@@ -57,10 +57,10 @@ class ImportFracFile:
                 line = []
 
         # Make collection of lines
-        self.all_lines = sg.MultiLineString(line_list)
+        self.original_lines = sg.MultiLineString(line_list)
 
     def get_data_long_axis(self):
-        min_bounding_rectangle = self.all_lines.minimum_rotated_rectangle
+        min_bounding_rectangle = self.original_lines.minimum_rotated_rectangle
         x, y = min_bounding_rectangle.exterior.xy
         x1, x2, x3, x4 = x[0:4]
         y1, y2, y3, y4 = y[0:4]
@@ -76,9 +76,11 @@ class ImportFracFile:
         Returns the reprojected coordinates in a shapely MultiLineString.
         """
         angle = self.long_axis_angle
-        all_lines = self.all_lines
+        original_lines = self.original_lines
+        self.original_extent = original_lines.bounds
+
         # rotate original interpreted lines
-        rot_lns = sa.rotate(all_lines, angle, origin="center", use_radians=False)
+        rot_lns = sa.rotate(original_lines, angle, origin="center", use_radians=False)
 
         minx, miny, maxx, maxy = rot_lns.bounds
         self.rotated_extent = [minx, miny, maxx, maxy]
@@ -88,29 +90,12 @@ class ImportFracFile:
 
         self.translated_extent = rot_lns.bounds
 
-        # all_lines_reproj = sa.translate(all_lines)
-        # output_lns = []
+        self.reprojected_lines = rot_lns
 
-        # for i in range(len(all_lines_reproj)):
-        #     ln = all_lines_reproj[i]
-        #     x = np.array([c[0] for c in ln.coords])
-        #     x = x - origin[0]
-        #     y = np.array([c[1] for c in ln.coords])
-        #     y = y - origin[1]
-        #     z = np.array([c[2] for c in ln.coords])
-        #     if len(origin) == 3:
-        #         z = z - origin[2]
-        # plt.plot(x, y)
-
-        #
-        # reproj_ln = list(zip(x, y, z))
-        # output_lns.append(reproj_ln)
-
-        # self.rotated_lns = sg.MultiLineString(output_lns)
-        return rot_lns
         plt.ylabel("Lateral distance from lakeside/West (m)")
         plt.xlabel("Lateral distance from left/North (m)")
-        plt.show()
+        # plt.show()
+        return rot_lns
 
     # def plot_xz_linelist(self):
     #     """
