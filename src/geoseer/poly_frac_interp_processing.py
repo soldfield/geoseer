@@ -22,6 +22,7 @@ import os
 import math
 import matplotlib as mpl
 
+
 def extract_coordinates_from_xyz_file(file_path):
     with open(file_path) as f_in:
         coord_list = f_in.readlines()
@@ -31,6 +32,7 @@ def extract_coordinates_from_xyz_file(file_path):
     coord_list = [i.split() for i in coord_list]
     coord_list = [np.array(i).astype(float) for i in coord_list]
     return coord_list
+
 
 def make_linestring_list(coord_list):
     """
@@ -53,23 +55,26 @@ def make_linestring_list(coord_list):
     all_lines = MultiLineString(line_list)
     return all_lines
 
+
 def calculate_bounding_rectangle(all_lines):
     # plot bounding box to fractures
     bounding_rectangle = all_lines.minimum_rotated_rectangle
     x, y = bounding_rectangle.exterior.xy
-    plt.plot(x,y)
+    plt.plot(x, y)
     plt.show()
     return bounding_rectangle
+
 
 def plot_all_fracs_xy_plane(all_lines):
     """
     Plots all lines extracted from file on X and Y axes.
     """
-    #plot individual fractures
+    # plot individual fractures
     for i in all_lines:
         x, y = i.xy
-        plt.plot(x,y)
+        plt.plot(x, y)
     plt.show()
+
 
 def bounding_box_long_axis(bounding_rectangle):
     # find trend
@@ -78,18 +83,20 @@ def bounding_box_long_axis(bounding_rectangle):
     x1, x2, x3, x4 = x[0:4]
     y1, y2, y3, y4 = y[0:4]
 
-    xdiff = np.abs(np.mean([x1, x4])-np.mean([x2, x3]))
-    ydiff = np.abs(np.mean([y1, y4])-np.mean([y2, y3]))
+    xdiff = np.abs(np.mean([x1, x4]) - np.mean([x2, x3]))
+    ydiff = np.abs(np.mean([y1, y4]) - np.mean([y2, y3]))
 
-    angle = np.rad2deg(np.arctan(ydiff/xdiff))
+    angle = np.rad2deg(np.arctan(ydiff / xdiff))
     print(angle)
     # positive angles will become counter-clockwise rotation
     return angle
 
+
 def plot_bounding_box(reproj_bound_box):
     x, y = reproj_bound_box.exterior.xy
-    plt.plot(x,y)
+    plt.plot(x, y)
     plt.show()
+
 
 def reproject_to_local_crs(all_lines, angle, origin):
     """
@@ -116,13 +123,13 @@ def reproject_to_local_crs(all_lines, angle, origin):
         reproj_ln = list(zip(x, y, z))
         output_lns.append(reproj_ln)
 
-
     output_lns = MultiLineString(output_lns)
 
     plt.ylabel("Lateral distance from lakeside/West (m)")
     plt.xlabel("Lateral distance from left/North (m)")
     plt.show()
     return output_lns
+
 
 def plot_xz_linelist(line_list):
     """
@@ -132,7 +139,7 @@ def plot_xz_linelist(line_list):
     """
     for ln in line_list:
         x = np.array([c[0] for c in ln.coords])
-        #y = np.array([c[1] for c in ln.coords])
+        # y = np.array([c[1] for c in ln.coords])
         z = np.array([c[2] for c in ln.coords])
 
         plt.plot(x, z)
@@ -165,17 +172,17 @@ def search_fractures_x_window(window_x_min, window_x_max, all_lines_reproj):
     active_lines = MultiLineString(active_lines)
     return active_lines
 
+
 def full_frac_interp_process_example(input_file, origin, plot=False):
     """
     Function that calls each of the functions above to convert a poly file
-    into a list of polylines each of which represent a fracture and output a 
+    into a list of polylines each of which represent a fracture and output a
     figure in the XZ plane.
-    
+
     :param input_polyfile: file from cloud compare in our use case
     :return all_lines_reproj: list of polylines
     """
-    
-    
+
     file_path = os.path.normpath(input_file)
     coord_list = extract_coordinates_from_xyz_file(file_path)
     all_lines = make_linestring_list(coord_list)
@@ -186,7 +193,7 @@ def full_frac_interp_process_example(input_file, origin, plot=False):
 
     # TODO: automate origin identification
     # origin = (560420,6323600,0) # for Rørdal, note X, Y, Z, Z can be changed to match other figures
-    
+
     # reproj_bound_box = rotate(bounding_rectangle, angle, origin, use_radians=False)
     all_lines_reproj = reproject_to_local_crs(all_lines, angle, origin)  # includes plot
 
@@ -220,19 +227,24 @@ def dip_from_ij_arr(i_arr, j_arr) -> float:
     return dip
 
 
-def rgba_col_val(value, cmap_name='Spectral', scale_min=0.0, scale_max=90.0):
-    cmap = mpl.cm.get_cmap(cmap_name) # insert colormap name here to change
+def rgba_col_val(value, cmap_name="Spectral", scale_min=0.0, scale_max=90.0):
+    cmap = mpl.cm.get_cmap(cmap_name)  # insert colormap name here to change
     norm = mpl.colors.Normalize(vmin=scale_min, vmax=scale_max)
     rgb_val = cmap(norm(value))
     return rgb_val
 
 
-def print_colorbar(cmap_name='viridis', scale_min=0.0, scale_max=90.0) -> None:
+def print_colorbar(cmap_name="viridis", scale_min=0.0, scale_max=90.0) -> None:
     cmap = mpl.cm.get_cmap(cmap_name)  # insert colormap name here to change
     norm = mpl.colors.Normalize(vmin=scale_min, vmax=scale_max)
     fig, ax = plt.subplots(figsize=(6, 1))
     fig.subplots_adjust(bottom=0.5)
-    fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), cax=ax, orientation='horizontal', label='Dip (degrees)')
+    fig.colorbar(
+        mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
+        cax=ax,
+        orientation="horizontal",
+        label="Dip (degrees)",
+    )
     plt.show()
 
 
@@ -257,7 +269,7 @@ def xy_to_fracpaq(line_list: list, out_path: str) -> None:
         for i in range(len(i_arr)):
             string_out += str(i_arr[i]) + "\t" + str(j_arr[i]) + "\t"
             # print(i, len(i_arr))
-            if i == len(i_arr)-1:
+            if i == len(i_arr) - 1:
                 # print(i)
                 string_out += "\n"
                 # list_string_lines_out.append(string_line_out)
@@ -269,8 +281,9 @@ def xy_to_fracpaq(line_list: list, out_path: str) -> None:
     plt.xlabel("Easting (m)")
     plt.show()
 
-    plot_file_name = out_path[:-4]+".png"
+    plot_file_name = out_path[:-4] + ".png"
     plt.savefig(plot_file_name)
+
 
 def xz_to_fracpaq(line_list: list, out_fig_name: str, xlim: list) -> None:
     """
@@ -284,7 +297,7 @@ def xz_to_fracpaq(line_list: list, out_fig_name: str, xlim: list) -> None:
     string_out = ""
 
     fig, ax = plt.subplots()
-    #fig.figure(figsize=(8,3), dpi=300) # change figure size and resolution
+    # fig.figure(figsize=(8,3), dpi=300) # change figure size and resolution
 
     for i in range(len(line_list)):
         # retrieve coordinates for line
@@ -293,14 +306,16 @@ def xz_to_fracpaq(line_list: list, out_fig_name: str, xlim: list) -> None:
         j_arr = ln_coords[:, 2]
 
         dip_ij = dip_from_ij_arr(i_arr, j_arr)
-        dip_rgba = rgba_col_val(dip_ij, cmap_name='viridis', scale_min=0.0, scale_max=90.0)
+        dip_rgba = rgba_col_val(
+            dip_ij, cmap_name="viridis", scale_min=0.0, scale_max=90.0
+        )
 
         ax.plot(i_arr, j_arr, color=dip_rgba)
 
         for i in range(len(i_arr)):
             string_out += str(i_arr[i]) + "\t" + str(j_arr[i]) + "\t"
             # print(i, len(i_arr))
-            if i == len(i_arr)-1:
+            if i == len(i_arr) - 1:
                 # print(i)
                 string_out += "\n"
                 # list_string_lines_out.append(string_line_out)
@@ -311,12 +326,13 @@ def xz_to_fracpaq(line_list: list, out_fig_name: str, xlim: list) -> None:
     ax.set_xlim(xlim[0], xlim[1])
     ax.set_ylabel("Vertical distance (m)")
     ax.set_xlabel("Horizontal distance (m)")
-    ax.set_aspect('equal')
+    ax.set_aspect("equal")
 
     fig.savefig(out_fig_name)
     plt.show()
 
-def find_min_x(line_list, round_down = True):
+
+def find_min_x(line_list, round_down=True):
     min_x_ls = []
 
     for line in line_list:
@@ -329,18 +345,20 @@ def find_min_x(line_list, round_down = True):
 
     return min_x
 
+
 #%%
 
-input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
+# input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
 # input_file = "C:\\Users\\shl459\\Desktop\\DTU_20201021\\measurements.poly"
+input_file = "..\\..\\data\\measurements.poly"
 
-origin = [560315,6323604,0]
+origin = [560315, 6323604, 0]
 all_lines_reprojected = full_frac_interp_process_example(input_file, origin, False)
 
 #%%
 
 # Run lines 1-275 once
-# Define window size and wall length 
+# Define window size and wall length
 # Then run below once
 # Will output to working directory (where this code is saved)
 
@@ -348,32 +366,33 @@ all_lines_reprojected = full_frac_interp_process_example(input_file, origin, Fal
 
 window_size = int(15)
 quarry_wall_length = int(1000)
-number_of_windows = 1 #int(quarry_wall_length / window_size)
+number_of_windows = 1  # int(quarry_wall_length / window_size)
 out_directory = os.getcwd()
 
 line_list = all_lines_reprojected
 
-for i in range(0,number_of_windows):
+for i in range(0, number_of_windows):
     plt.clf()
 
     min_x = float(find_min_x(line_list, round_down=True))
 
     window_x_min = (window_size * i) + min_x
-    window_x_max = (window_size * (i +1)) + min_x
+    window_x_max = (window_size * (i + 1)) + min_x
     xlim = [window_x_min, window_x_max]
 
     name = "fpq_input_window_" + str(window_x_min) + "_to_" + str(window_x_max)
-    out_file_name = name +'.txt'
+    out_file_name = name + ".txt"
     out_path = os.path.join(out_directory, out_file_name)
 
     fx_lines = search_fractures_x_window(window_x_min, window_x_max, line_list)
 
-    out_fig_name = name +'.png'
+    out_fig_name = name + ".png"
     xz_to_fracpaq(fx_lines, out_fig_name, xlim)
 
 print_colorbar()
 
 #%%
+
 
 def xz_to_fracpaq2(line_list: list, out_fig_name: str, xlim: list) -> None:
     """
@@ -387,7 +406,7 @@ def xz_to_fracpaq2(line_list: list, out_fig_name: str, xlim: list) -> None:
     string_out = ""
 
     fig, (ax1, ax2) = plt.subplots(nrows=2)
-    #fig.figure(figsize=(8,3), dpi=300) # change figure size and resolution
+    # fig.figure(figsize=(8,3), dpi=300) # change figure size and resolution
 
     for i in range(len(line_list)):
         # retrieve coordinates for line
@@ -396,18 +415,19 @@ def xz_to_fracpaq2(line_list: list, out_fig_name: str, xlim: list) -> None:
         j_arr = ln_coords[:, 2]
         k_arr = ln_coords[:, 1]
 
-        #df = pd.DataFrame(j_arr, k_arr, columns = ['j', 'k'])
-
+        # df = pd.DataFrame(j_arr, k_arr, columns = ['j', 'k'])
 
         dip_ij = dip_from_ij_arr(i_arr, j_arr)
-        dip_rgba = rgba_col_val(dip_ij, cmap_name='viridis', scale_min=0.0, scale_max=90.0)
-        ax1.plot(i_arr, k_arr, 'k.')
+        dip_rgba = rgba_col_val(
+            dip_ij, cmap_name="viridis", scale_min=0.0, scale_max=90.0
+        )
+        ax1.plot(i_arr, k_arr, "k.")
         ax2.plot(i_arr, j_arr, color=dip_rgba)
 
         for i in range(len(i_arr)):
             string_out += str(i_arr[i]) + "\t" + str(j_arr[i]) + "\t"
             # print(i, len(i_arr))
-            if i == len(i_arr)-1:
+            if i == len(i_arr) - 1:
                 # print(i)
                 string_out += "\n"
                 # list_string_lines_out.append(string_line_out)
@@ -418,7 +438,7 @@ def xz_to_fracpaq2(line_list: list, out_fig_name: str, xlim: list) -> None:
     ax2.set_xlim(xlim[0], xlim[1])
     ax2.set_ylabel("Vertical distance (m)")
     ax2.set_xlabel("Horizontal distance (m)")
-    ax2.set_aspect('equal')
+    ax2.set_aspect("equal")
 
     fig.savefig(out_fig_name)
     plt.show()
@@ -429,27 +449,27 @@ def xz_to_fracpaq2(line_list: list, out_fig_name: str, xlim: list) -> None:
 
 window_size = int(40)
 quarry_wall_length = int(1000)
-number_of_windows = 1 #int(quarry_wall_length / window_size)
+number_of_windows = 1  # int(quarry_wall_length / window_size)
 out_directory = os.getcwd()
 
 line_list = all_lines_reprojected
 
-for i in range(0,number_of_windows):
+for i in range(0, number_of_windows):
     plt.clf()
 
     min_x = float(find_min_x(line_list, round_down=True))
 
     window_x_min = (window_size * i) + min_x
-    window_x_max = (window_size * (i +1)) + min_x
+    window_x_max = (window_size * (i + 1)) + min_x
     xlim = [window_x_min, window_x_max]
 
     name = "fpq_input_window_" + str(window_x_min) + "_to_" + str(window_x_max)
-    out_file_name = name +'.txt'
+    out_file_name = name + ".txt"
     out_path = os.path.join(out_directory, out_file_name)
 
     fx_lines = search_fractures_x_window(window_x_min, window_x_max, line_list)
 
-    out_fig_name = name +'.png'
+    out_fig_name = name + ".png"
     i_arr, j_arr, k_arr = xz_to_fracpaq2(fx_lines, out_fig_name, xlim)
 
 print_colorbar()
@@ -466,4 +486,3 @@ print_colorbar()
 #
 # plt.plot(df[0], df['sma3'])
 # plt.show()
-
