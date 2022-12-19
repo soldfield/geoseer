@@ -285,7 +285,7 @@ def xy_to_fracpaq(line_list: list, out_path: str) -> None:
     plt.savefig(plot_file_name)
 
 
-def xz_to_fracpaq(line_list: list, out_fig_name: str, xlim: list) -> None:
+def xz_to_fracpaq(line_list: list, out_fig_name: str, xlim: list, ylim: list) -> None:
     """
     Converts a shapely multilinestring object to a FracPaQ file, extracting data to a two-dimensional plane
     oriented to intersect the x and y axes (xy-plane).
@@ -309,21 +309,26 @@ def xz_to_fracpaq(line_list: list, out_fig_name: str, xlim: list) -> None:
         dip_rgba = rgba_col_val(
             dip_ij, cmap_name="viridis", scale_min=0.0, scale_max=90.0
         )
+        if dip_ij < 10:  # change to define minimum dip
+            continue
+        elif dip_ij > 90:  # change to define maximum dip
+            continue
+        else:
+            ax.plot(i_arr, j_arr, color=dip_rgba)
 
-        ax.plot(i_arr, j_arr, color=dip_rgba)
-
-        for i in range(len(i_arr)):
-            string_out += str(i_arr[i]) + "\t" + str(j_arr[i]) + "\t"
-            # print(i, len(i_arr))
-            if i == len(i_arr) - 1:
-                # print(i)
-                string_out += "\n"
-                # list_string_lines_out.append(string_line_out)
+            for i in range(len(i_arr)):
+                string_out += str(i_arr[i]) + "\t" + str(j_arr[i]) + "\t"
+                # print(i, len(i_arr))
+                if i == len(i_arr) - 1:
+                    # print(i)
+                    string_out += "\n"
+                    # list_string_lines_out.append(string_line_out)
     # write to output file
     with open(out_path, "w") as f_out:
         f_out.write(string_out)
 
     ax.set_xlim(xlim[0], xlim[1])
+    ax.set_ylim(ylim[0], ylim[1])
     ax.set_ylabel("Vertical distance (m)")
     ax.set_xlabel("Horizontal distance (m)")
     ax.set_aspect("equal")
@@ -347,10 +352,9 @@ def find_min_x(line_list, round_down=True):
 
 
 #%%
-
+input_file = "C:\\Users\\shl459\\Desktop\\DTU_20201021\\measurements.poly"
 # input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
 # input_file = "C:\\Users\\shl459\\Desktop\\DTU_20201021\\measurements.poly"
-input_file = "..\\..\\data\\measurements.poly"
 
 origin = [560315, 6323604, 0]
 all_lines_reprojected = full_frac_interp_process_example(input_file, origin, False)
@@ -364,8 +368,8 @@ all_lines_reprojected = full_frac_interp_process_example(input_file, origin, Fal
 
 # Looped output of sample windows
 
-window_size = int(15)
-quarry_wall_length = int(1000)
+window_size = int(20)
+quarry_wall_length = int(675)
 number_of_windows = 1  # int(quarry_wall_length / window_size)
 out_directory = os.getcwd()
 
@@ -376,9 +380,16 @@ for i in range(0, number_of_windows):
 
     min_x = float(find_min_x(line_list, round_down=True))
 
-    window_x_min = (window_size * i) + min_x
-    window_x_max = (window_size * (i + 1)) + min_x
+    # window_x_min = (window_size * i) + min_x
+    window_x_min = 713
+    # window_x_max = (window_size * (i +1)) + min_x
+    window_x_max = 715
+
+    window_y_min = 5
+    window_y_max = 7
+
     xlim = [window_x_min, window_x_max]
+    ylim = [window_y_min, window_y_max]
 
     name = "fpq_input_window_" + str(window_x_min) + "_to_" + str(window_x_max)
     out_file_name = name + ".txt"
@@ -387,7 +398,7 @@ for i in range(0, number_of_windows):
     fx_lines = search_fractures_x_window(window_x_min, window_x_max, line_list)
 
     out_fig_name = name + ".png"
-    xz_to_fracpaq(fx_lines, out_fig_name, xlim)
+    xz_to_fracpaq(fx_lines, out_fig_name, xlim, ylim)
 
 print_colorbar()
 
@@ -445,34 +456,34 @@ def xz_to_fracpaq2(line_list: list, out_fig_name: str, xlim: list) -> None:
     return i_arr, j_arr, k_arr
 
 
-# Looped output of sample windows
+# # Looped output of sample windows
 
-window_size = int(40)
-quarry_wall_length = int(1000)
-number_of_windows = 1  # int(quarry_wall_length / window_size)
-out_directory = os.getcwd()
+# window_size = int(670)
+# quarry_wall_length = int(1000)
+# number_of_windows = 2 #int(quarry_wall_length / window_size)
+# out_directory = os.getcwd()
 
-line_list = all_lines_reprojected
+# line_list = all_lines_reprojected
 
-for i in range(0, number_of_windows):
-    plt.clf()
+# for i in range(0,number_of_windows):
+#     plt.clf()
 
-    min_x = float(find_min_x(line_list, round_down=True))
+#     min_x = float(find_min_x(line_list, round_down=True))
 
-    window_x_min = (window_size * i) + min_x
-    window_x_max = (window_size * (i + 1)) + min_x
-    xlim = [window_x_min, window_x_max]
+#     window_x_min = (window_size * i) + min_x
+#     window_x_max = (window_size * (i +1)) + min_x
+#     xlim = [window_x_min, window_x_max]
 
-    name = "fpq_input_window_" + str(window_x_min) + "_to_" + str(window_x_max)
-    out_file_name = name + ".txt"
-    out_path = os.path.join(out_directory, out_file_name)
+#     name = "fpq_input_window_" + str(window_x_min) + "_to_" + str(window_x_max)
+#     out_file_name = name +'.txt'
+#     out_path = os.path.join(out_directory, out_file_name)
 
-    fx_lines = search_fractures_x_window(window_x_min, window_x_max, line_list)
+#     fx_lines = search_fractures_x_window(window_x_min, window_x_max, line_list)
 
-    out_fig_name = name + ".png"
-    i_arr, j_arr, k_arr = xz_to_fracpaq2(fx_lines, out_fig_name, xlim)
+#     out_fig_name = name +'.png'
+#     i_arr, j_arr, k_arr = xz_to_fracpaq2(fx_lines, out_fig_name, xlim)
 
-print_colorbar()
+# print_colorbar()
 
 #%%
 
