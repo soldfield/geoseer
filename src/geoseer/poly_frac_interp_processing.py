@@ -352,9 +352,10 @@ def find_min_x(line_list, round_down=True):
 
 
 #%%
-input_file = "C:\\Users\\shl459\\Desktop\\DTU_20201021\\measurements.poly"
+# input_file = "C:\\Users\\shl459\\Desktop\\DTU_20201021\\measurements.poly"
 # input_file = "C:\\Users\\simold\\Documents\\git\\DFNcompare\\data\\tala_cc_fracs\\measurements.poly"
 # input_file = "C:\\Users\\shl459\\Desktop\\DTU_20201021\\measurements.poly"
+input_file = "..\\..\\data\\measurements.poly"
 
 origin = [560315, 6323604, 0]
 all_lines_reprojected = full_frac_interp_process_example(input_file, origin, False)

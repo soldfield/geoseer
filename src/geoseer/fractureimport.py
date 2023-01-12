@@ -1,6 +1,7 @@
 """Fracture import module"""
 
 import os
+import math
 from tkinter import filedialog as fd
 
 import numpy as np
@@ -9,11 +10,11 @@ import shapely.geometry as sg
 import shapely.affinity as sa
 import shapely.ops as so
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+from shapely import strtree
 
-from poly_frac_interp_processing import *
 
-
-class ImportFracFile:
+class PolyFracFile:
     """Class for initial import of fracture files."""
 
     def __init__(self, file_path=None):
@@ -31,6 +32,8 @@ class ImportFracFile:
         self.import_data = self.read_coordinates_from_xyz_file()
         self.make_linestring_list()
         self.get_data_long_axis()
+        self.reproject_to_local_grid()
+        self.make_search_tree()
 
     def read_coordinates_from_xyz_file(self):
         with open(self.file_path) as f_in:
@@ -97,7 +100,10 @@ class ImportFracFile:
         # plt.ylabel("Lateral distance from lakeside/West (m)")
         # plt.xlabel("Lateral distance from left/North (m)")
         # plt.show()
-        return rot_lns
+        # return rot_lns
+
+    def make_search_tree(self):
+        self.search_tree = strtree.STRtree(self.reprojected_lines)
 
     def plot_xz_linelist(self):
         """
@@ -120,7 +126,7 @@ class ImportFracFile:
         plt.xlabel("Lateral distance from left/North (m)")
         plt.show()
 
-    def search_fractures_x_window(window_x_min, window_x_max):
+    def search_fractures_x_window(self, window_x_min, window_x_max):
         """
         Script to identify fractures that exist between two defined x values.
         All other coordinates ignored.
@@ -133,7 +139,7 @@ class ImportFracFile:
         all_lines_reproj = self.reprojected_lines
 
         active_lines = []
-        for line in all_lines_reproj:
+        for line in all_lines_reproj.geoms:
             x_list, y_list = line.xy
             line_x_max = np.max(x_list)
             line_x_min = np.min(x_list)
@@ -144,40 +150,7 @@ class ImportFracFile:
         active_lines = sg.MultiLineString(active_lines)
         return active_lines
 
-    def full_frac_interp_process_example(input_file, origin, plot=False):
-        """
-        Function that calls each of the functions above to convert a poly file
-        into a list of polylines each of which represent a fracture and output a
-        figure in the XZ plane.
-
-        :param input_polyfile: file from cloud compare in our use case
-        :return all_lines_reproj: list of polylines
-        """
-
-        file_path = os.path.normpath(input_file)
-        coord_list = extract_coordinates_from_xyz_file(file_path)
-        all_lines = make_linestring_list(coord_list)
-        bounding_rectangle = calculate_bounding_rectangle(all_lines)
-
-        # plot_all_fracs_xy_plane(all_lines)
-        angle = bounding_box_long_axis(bounding_rectangle)
-
-        # TODO: automate origin identification
-        # origin = (560420,6323600,0) # for Rørdal, note X, Y, Z, Z can be changed to match other figures
-
-        # reproj_bound_box = rotate(bounding_rectangle, angle, origin, use_radians=False)
-        all_lines_reproj = reproject_to_local_crs(
-            all_lines, angle, origin
-        )  # includes plot
-
-        if plot == True:
-            plot_xz_linelist(all_lines_reproj, origin)
-
-        self.all_lines_reproj = all_lines_reproj
-
-        return all_lines_reproj
-
-    def dip_from_ij_arr(i_arr, j_arr) -> float:
+    def dip_from_ij_arr(self, i_arr, j_arr) -> float:
         """
         Returns a dip angle in dagrees from the start and end point of a line defined by a list of i and j coordinates
         :param i_arr: list of i coordinates
@@ -200,13 +173,15 @@ class ImportFracFile:
 
         return dip
 
-    def rgba_col_val(value, cmap_name="Spectral", scale_min=0.0, scale_max=90.0):
+    def rgba_col_val(self, value, cmap_name="Spectral", scale_min=0.0, scale_max=90.0):
         cmap = mpl.cm.get_cmap(cmap_name)  # insert colormap name here to change
         norm = mpl.colors.Normalize(vmin=scale_min, vmax=scale_max)
         rgb_val = cmap(norm(value))
         return rgb_val
 
-    def print_colorbar(cmap_name="viridis", scale_min=0.0, scale_max=90.0) -> None:
+    def print_colorbar(
+        self, cmap_name="viridis", scale_min=0.0, scale_max=90.0
+    ) -> None:
         cmap = mpl.cm.get_cmap(cmap_name)  # insert colormap name here to change
         norm = mpl.colors.Normalize(vmin=scale_min, vmax=scale_max)
         fig, ax = plt.subplots(figsize=(6, 1))
@@ -219,7 +194,7 @@ class ImportFracFile:
         )
         plt.show()
 
-    def xy_to_fracpaq(line_list: list, out_path: str) -> None:
+    def xy_to_fracpaq(self, line_list: list, out_path: str) -> None:
         """
         Converts a shapely multilinestring object to a FracPaQ file, extracting data to a two-dimensional plane
         oriented to intersect the x and y axes (xy-plane).
@@ -255,7 +230,9 @@ class ImportFracFile:
         plot_file_name = out_path[:-4] + ".png"
         plt.savefig(plot_file_name)
 
-    def xz_to_fracpaq(line_list: list, out_fig_name: str, xlim: list) -> None:
+    def xz_to_fracpaq(
+        self, line_list: list, out_fig_name: str, xlim: list, out_path: str
+    ) -> None:
         """
         Converts a shapely multilinestring object to a FracPaQ file, extracting data to a two-dimensional plane
         oriented to intersect the x and y axes (xy-plane).
@@ -275,8 +252,8 @@ class ImportFracFile:
             i_arr = ln_coords[:, 0]
             j_arr = ln_coords[:, 2]
 
-            dip_ij = dip_from_ij_arr(i_arr, j_arr)
-            dip_rgba = rgba_col_val(
+            dip_ij = self.dip_from_ij_arr(i_arr, j_arr)
+            dip_rgba = self.rgba_col_val(
                 dip_ij, cmap_name="viridis", scale_min=0.0, scale_max=90.0
             )
 
@@ -301,7 +278,7 @@ class ImportFracFile:
         fig.savefig(out_fig_name)
         plt.show()
 
-    def find_min_x(line_list, round_down=True):
+    def find_min_x(self, line_list, round_down=True):
         min_x_ls = []
 
         for line in line_list:
