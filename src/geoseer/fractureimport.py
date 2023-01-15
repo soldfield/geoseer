@@ -207,7 +207,7 @@ class PolyFracFile:
 
         for i in range(len(line_list)):
             # retrieve coordinates for line
-            ln_coords = np.array(line_list[i].coords)
+            ln_coords = np.array(line_list.geoms[i].coords)
             i_arr = ln_coords[:, 0]
             j_arr = ln_coords[:, 1]
             plt.plot(i_arr, j_arr)
@@ -248,7 +248,7 @@ class PolyFracFile:
 
         for i in range(len(line_list)):
             # retrieve coordinates for line
-            ln_coords = np.array(line_list[i].coords)
+            ln_coords = np.array(line_list.geoms[i].coords)
             i_arr = ln_coords[:, 0]
             j_arr = ln_coords[:, 2]
 
