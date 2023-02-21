@@ -33,7 +33,7 @@ class PolyFracFile:
         self.make_linestring_list()
         self.get_data_long_axis()
         self.reproject_to_local_grid()
-        self.make_search_tree()
+        # self.make_search_tree()
 
     def read_coordinates_from_xyz_file(self):
         with open(self.file_path) as f_in:
@@ -65,7 +65,8 @@ class PolyFracFile:
         self.original_lines = sg.MultiLineString(line_list)
 
     def get_data_long_axis(self):
-        min_bounding_rectangle = self.original_lines.minimum_rotated_rectangle
+        orig_lns = self.original_lines
+        min_bounding_rectangle = orig_lns.minimum_rotated_rectangle
         x, y = min_bounding_rectangle.exterior.xy
         x1, x2, x3, x4 = x[0:4]
         y1, y2, y3, y4 = y[0:4]
