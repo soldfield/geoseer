@@ -29,7 +29,7 @@ class PolyFracFile:
             self.file_name[-5:] == ".poly"
         ), "Source file name does not end in '.poly'"
 
-        self.import_data = self.read_coordinates_from_xyz_file()
+        self.coord_list = self.read_coordinates_from_xyz_file()
         self.make_linestring_list()
         self.get_data_long_axis()
         self.reproject_to_local_grid()
@@ -42,7 +42,7 @@ class PolyFracFile:
         coord_list = [i.strip() for i in coord_list]
         coord_list = [i.split() for i in coord_list]
         coord_list = [np.array(i).astype(float) for i in coord_list]
-        self.coord_list = coord_list
+        return coord_list
 
     def make_linestring_list(self):
         """
